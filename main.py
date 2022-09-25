@@ -20,8 +20,8 @@ def _warn_multiple(key: str, data: Dict) -> None:
 
 class RouteEntryNextHop:
     def __init__(self):
-        self.to = None
-        self.via = None
+        self.to: str = "_undefined_"  # IP address ("a.b.c.d")
+        self.via: str = "_undefined_"
 
     def to_dict(self) -> Dict:
         return {"to": self.to, "via": self.via}
@@ -36,18 +36,24 @@ class BatfishRouteEntryNextHop(RouteEntryNextHop):
 
 class CrpdRouteEntryNextHop(RouteEntryNextHop):
     def __init__(self, rt_nh: Dict):
+
         super().__init__()
-        self.to = rt_nh["to"][0]["data"] if "to" in rt_nh else None
-        self.via = rt_nh["via"][0]["data"] if "via" in rt_nh else rt_nh["nh-local-interface"][0]["data"]
+        if "to" in rt_nh:
+            self.to = rt_nh["to"][0]["data"]
+
+        if "via" in rt_nh:
+            self.via = rt_nh["via"][0]["data"]
+        else:
+            self.via = rt_nh["nh-local-interface"][0]["data"]
 
 
 class RouteEntry:
     def __init__(self):
         self.nexthops: List[RouteEntryNextHop] = []
-        self.nexthop_type = None
-        self.preference = None
-        self.protocol = None
-        self.metric = None
+        self.nexthop_type: str = "_undefined_"
+        self.preference: int = -1
+        self.protocol: str = "_undefined_"
+        self.metric: int = -1
 
     def to_dict(self) -> Dict:
         return {
@@ -78,16 +84,16 @@ class CrpdRouteEntry(RouteEntry):
         if "nh-type" in rt_entry:
             self.nexthop_type = rt_entry["nh-type"][0]["data"]
         if "preference" in rt_entry:
-            self.preference = rt_entry["preference"][0]["data"]
+            self.preference = int(rt_entry["preference"][0]["data"])
         if "protocol-name" in rt_entry:
             self.protocol = rt_entry["protocol-name"][0]["data"]
         if "metric" in rt_entry:
-            self.metric = rt_entry["metric"][0]["data"]
+            self.metric = int(rt_entry["metric"][0]["data"])
 
 
 class RouteTableEntry:
     def __init__(self):
-        self.destination = None
+        self.destination: str = "_undefined_"  # IP address + prefix-length ("a.b.c.d/nn")
         self.entries: List[RouteEntry] = []
 
     def to_dict(self) -> Dict:
