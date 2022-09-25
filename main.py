@@ -3,7 +3,7 @@ import copy
 import json
 import os
 import sys
-from typing import Dict, List
+from typing import Dict, List, Optional, Type
 
 
 def _debug(message: str) -> None:
@@ -28,29 +28,9 @@ class RouteEntryNextHop:
         return {"to": self.to, "via": self.via}
 
 
-class BatfishRouteEntryNextHop(RouteEntryNextHop):
-    def __init__(self, rt_data: Dict):
-        super().__init__()
-        self.to = rt_data["Next_Hop_IP"]
-        self.via = rt_data["Next_Hop_Interface"]
-
-
-class CrpdRouteEntryNextHop(RouteEntryNextHop):
-    def __init__(self, rt_nh: Dict):
-
-        super().__init__()
-        if "to" in rt_nh:
-            self.to = rt_nh["to"][0]["data"]
-
-        if "via" in rt_nh:
-            self.via = rt_nh["via"][0]["data"]
-        else:
-            self.via = rt_nh["nh-local-interface"][0]["data"]
-
-
 class RouteEntry:
     def __init__(self):
-        self.nexthops: List[RouteEntryNextHop] = []
+        self.nexthops: List[Type[RouteEntryNextHop]] = []
         self.nexthop_type: str = "_undefined_"
         self.preference: int = -1
         self.protocol: str = "_undefined_"
@@ -66,6 +46,31 @@ class RouteEntry:
         }
 
 
+class RouteTableEntry:
+    def __init__(self):
+        self.destination: str = "_undefined_"  # IP address + prefix-length ("a.b.c.d/nn")
+        self.entries: List[Type[RouteEntry]] = []
+
+    def to_dict(self) -> Dict:
+        return {"destination": self.destination, "entries": [e.to_dict() for e in self.entries]}
+
+
+class RouteTable:
+    def __init__(self):
+        self.table_name = "_undefined_"
+        self.entries: List[Type[RouteTableEntry]] = []
+
+    def find_entry_by_destination(self, dst: str) -> Optional[Type[RouteTableEntry]]:
+        return next((e for e in self.entries if e.destination == dst), None)
+
+
+class BatfishRouteEntryNextHop(RouteEntryNextHop):
+    def __init__(self, rt_data: Dict):
+        super().__init__()
+        self.to = rt_data["Next_Hop_IP"]
+        self.via = rt_data["Next_Hop_Interface"]
+
+
 class BatfishRouteEntry(RouteEntry):
     def __init__(self, rt_data: Dict):
         super().__init__()
@@ -74,6 +79,44 @@ class BatfishRouteEntry(RouteEntry):
         self.preference = rt_data["Admin_Distance"]
         self.protocol = rt_data["Protocol"]
         self.metric = rt_data["Metric"]
+
+
+class BatfishRouteTableEntry(RouteTableEntry):
+    def __init__(self, rt_data: Dict):
+        super().__init__()
+        # _debug(f"bf rt_data: {json.dumps(rt_data)}")
+
+        self.destination = rt_data["Network"]
+        self.entries: List[BatfishRouteEntry] = [BatfishRouteEntry(rt_data)]
+
+
+class BatfishRouteTable(RouteTable):
+    def __init__(self, file: str):
+        super().__init__()
+        with open(os.path.expanduser(file), "r") as route_file:
+            self.data = json.load(route_file)
+
+        # find default entries of default vrf
+        self.table_name = "default"
+        self.entries: List[BatfishRouteTableEntry] = [
+            BatfishRouteTableEntry(e) for e in self.data if e["VRF"] == self.table_name
+        ]
+
+    def to_dict(self) -> Dict:
+        return {"table_name": self.table_name, "entries": [e.to_dict() for e in self.entries]}
+
+
+class CrpdRouteEntryNextHop(RouteEntryNextHop):
+    def __init__(self, rt_nh: Dict):
+
+        super().__init__()
+        if "to" in rt_nh:
+            self.to = rt_nh["to"][0]["data"]
+
+        if "via" in rt_nh:
+            self.via = rt_nh["via"][0]["data"]
+        else:
+            self.via = rt_nh["nh-local-interface"][0]["data"]
 
 
 class CrpdRouteEntry(RouteEntry):
@@ -90,37 +133,6 @@ class CrpdRouteEntry(RouteEntry):
             self.protocol = rt_entry["protocol-name"][0]["data"]
         if "metric" in rt_entry:
             self.metric = int(rt_entry["metric"][0]["data"])
-
-
-class RouteTableEntry:
-    def __init__(self):
-        self.destination: str = "_undefined_"  # IP address + prefix-length ("a.b.c.d/nn")
-        self.entries: List[RouteEntry] = []
-
-    def to_dict(self) -> Dict:
-        return {"destination": self.destination, "entries": [e.to_dict() for e in self.entries]}
-
-
-class BatfishRouteTableEntry(RouteTableEntry):
-    def __init__(self, rt_data: Dict):
-        super().__init__()
-        # _debug(f"bf rt_data: {json.dumps(rt_data)}")
-
-        self.destination = rt_data["Network"]
-        self.entries: List[BatfishRouteEntry] = [BatfishRouteEntry(rt_data)]
-
-
-class BatfishRouteTable:
-    def __init__(self, file: str):
-        with open(os.path.expanduser(file), "r") as route_file:
-            self.data = json.load(route_file)
-
-        # find default entries of default vrf
-        self.table_name = "default"
-        self.entries = [BatfishRouteTableEntry(e) for e in self.data if e["VRF"] == self.table_name]
-
-    def to_dict(self) -> Dict:
-        return {"table_name": self.table_name, "entries": [e.to_dict() for e in self.entries]}
 
 
 class CrpdRouteTableEntry(RouteTableEntry):
@@ -154,8 +166,9 @@ class CrpdRouteTableEntry(RouteTableEntry):
         self.entries = expanded_entries
 
 
-class CrpdRouteTable:
+class CrpdRouteTable(RouteTable):
     def __init__(self, file: str):
+        super().__init__()
         with open(os.path.expanduser(file), "r") as route_file:
             self.data = json.load(route_file)
 
@@ -193,6 +206,24 @@ class CrpdRouteTable:
         self.entries = expanded_entries
 
 
+def cross_check_rt(crpd_rt: CrpdRouteTable, bf_rt: BatfishRouteTable) -> Dict:
+    result = {"found": [], "only_crpd_rt": [], "only_bf_rt": []}
+    for bf_rt_entry in bf_rt.entries:
+        crpd_rt_entry = crpd_rt.find_entry_by_destination(bf_rt_entry.destination)
+        if crpd_rt_entry:
+            result["found"].append({"crpd_rte": crpd_rt_entry.to_dict(), "bf_rte": bf_rt_entry.to_dict()})
+        else:
+            result["only_bf_rt"].append(bf_rt_entry.to_dict())
+
+    for crpd_rt_entry in crpd_rt.entries:
+        bf_rt_entry = bf_rt.find_entry_by_destination(crpd_rt_entry.destination)
+        if bf_rt_entry:
+            continue
+        result["only_crpd_rt"].append(crpd_rt_entry.to_dict())
+
+    return result
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Cross check routing table")
     parser.add_argument("--config", "-c", type=str, default="config.json", help="config file")
@@ -210,4 +241,5 @@ if __name__ == "__main__":
         bf_rt = BatfishRouteTable(config_data["sim_env"]["ospf_routes_file"])
         # print(json.dumps(bf_rt.to_dict()))
 
-        print(json.dumps([crpd_rt.to_dict(), bf_rt.to_dict()]))
+        # print(json.dumps([crpd_rt.to_dict(), bf_rt.to_dict()]))
+        print(json.dumps(cross_check_rt(crpd_rt, bf_rt)))
