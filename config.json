@@ -1,0 +1,20 @@
+{
+  "sim_env": {
+    "bf_host": "localhost",
+    "bf_nw_name": "sim_nw",
+    "bf_ss_name": "sim_ss",
+    "bf_nw_dir": "~/ool-mddo/playground/configs/mddo-ospf/test-topo/",
+    "ospf_routes_dir": "~/ool-mddo/confront_rt/sim_env_data",
+    "ospf_routes_file": "~/ool-mddo/confront_rt/sim_env_data/rt1_route.json",
+    "ospf_neighbors_file": "~/ool-mddo/confront_rt/sim_env_data/rt1_ospfneigh.json",
+    "device_name": "rt1"
+  },
+  "prod_env": {
+    "device_name": "rt1"
+  },
+  "dev_env": {
+    "device_name": "rt1",
+    "ospf_routes_file": "~/ool-mddo/mddo-nodered/data/convert_rt1_route.json",
+    "ospf_neighbors_file": "~/ool-mddo/mddo-nodered/data/convert_rt1_ospfneigh.json"
+  }
+}
