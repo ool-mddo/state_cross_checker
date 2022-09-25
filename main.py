@@ -1,4 +1,5 @@
 import argparse
+import copy
 import json
 import os
 import sys
@@ -137,6 +138,21 @@ class CrpdRouteTableEntry(RouteTableEntry):
 
         self.entries: List[CrpdRouteEntry] = [CrpdRouteEntry(r) for r in rt_data["rt-entry"]]
 
+    def expand_nh(self) -> None:
+        expanded_entries: List[CrpdRouteEntry] = []
+        for entry in self.entries:
+            if len(entry.nexthops) <= 1:
+                expanded_entries.append(entry)  # nothing to do
+                continue
+
+            for i in range(len(entry.nexthops)):
+                e = copy.deepcopy(entry)
+                e.nexthops = [entry.nexthops[i]]
+                expanded_entries.append(e)
+
+        # !!OVERWRITE!!
+        self.entries = expanded_entries
+
 
 class CrpdRouteTable:
     def __init__(self, file: str):
@@ -160,6 +176,22 @@ class CrpdRouteTable:
     def to_dict(self) -> Dict:
         return {"table_name": self.table_name, "entries": [e.to_dict() for e in self.entries]}
 
+    def expand_rt_entry(self) -> None:
+        expanded_entries: List[CrpdRouteTableEntry] = []
+        for entry in self.entries:
+            entry.expand_nh()
+            if len(entry.entries) <= 1:
+                expanded_entries.append(entry)
+                continue
+
+            for i in range(len(entry.entries)):
+                e = copy.deepcopy(entry)
+                e.entries = [entry.entries[i]]
+                expanded_entries.append(e)
+
+        # !!OVERWRITE!!
+        self.entries = expanded_entries
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Cross check routing table")
@@ -172,6 +204,7 @@ if __name__ == "__main__":
     with open(os.path.expanduser(args.config), "r") as config_file:
         config_data = json.load(config_file)
         crpd_rt = CrpdRouteTable(config_data["dev_env"]["ospf_routes_file"])
+        crpd_rt.expand_rt_entry()
         # print(json.dumps(crpd_rt.to_dict()))
 
         bf_rt = BatfishRouteTable(config_data["sim_env"]["ospf_routes_file"])
