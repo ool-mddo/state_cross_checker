@@ -49,8 +49,26 @@ class RouteTable:
         with open(os.path.expanduser(file), "r") as route_file:
             return json.load(route_file)
 
-    def find_entry_by_destination(self, dst: str) -> Optional[Type[RouteTableEntry]]:
-        return next((e for e in self.entries if e.destination == dst), None)
+    def find_all_entry_by_destination(self, dst: str) -> List[Type[RouteTableEntry]]:
+        return [e for e in self.entries if e.destination == dst]
+
+    def find_entry_equiv(self, dst: Type[RouteTableEntry]) -> Optional[Type[RouteTableEntry]]:
+        candidate_entries = self.find_all_entry_by_destination(dst.destination)
+        if len(candidate_entries) == 0:
+            return None
+
+        if len(candidate_entries) > 1:
+            # all route-table entries must be expanded (only 1 entry, 1 nexthop)
+            for entry in candidate_entries:
+                if (
+                    len(entry.entries) > 0
+                    and len(dst.entries) > 0
+                    and entry.entries[0].nexthops[0].to == dst.entries[0].nexthops[0].to
+                    or entry.entries[0].nexthops[0].via == dst.entries[0].nexthops[0].via
+                ):
+                    return entry
+
+        return candidate_entries[0]
 
     def to_dict(self) -> Dict:
         return {"table_name": self.table_name, "entries": [e.to_dict() for e in self.entries]}

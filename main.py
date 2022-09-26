@@ -12,14 +12,14 @@ from typing import Dict
 def cross_check_rt(crpd_rt: CrpdRouteTable, bf_rt: BatfishRouteTable) -> Dict:
     result = {"found": [], "only_crpd_rt": [], "only_bf_rt": []}
     for bf_rt_entry in bf_rt.entries:
-        crpd_rt_entry = crpd_rt.find_entry_by_destination(bf_rt_entry.destination)
+        crpd_rt_entry = crpd_rt.find_entry_equiv(bf_rt_entry)
         if crpd_rt_entry:
             result["found"].append({"crpd_rte": crpd_rt_entry.to_dict(), "bf_rte": bf_rt_entry.to_dict()})
         else:
             result["only_bf_rt"].append(bf_rt_entry.to_dict())
 
     for crpd_rt_entry in crpd_rt.entries:
-        bf_rt_entry = bf_rt.find_entry_by_destination(crpd_rt_entry.destination)
+        bf_rt_entry = bf_rt.find_entry_equiv(crpd_rt_entry)
         if bf_rt_entry:
             continue
         result["only_crpd_rt"].append(crpd_rt_entry.to_dict())
