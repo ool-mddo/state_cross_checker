@@ -2,7 +2,7 @@ from base_route_table import RouteEntryNextHop, RouteEntry, RouteTableEntry, Rou
 import utility as util
 import copy
 import sys
-from typing import Dict, List
+from typing import Dict, List, NoReturn
 
 
 class CrpdRouteEntryNextHop(RouteEntryNextHop):
@@ -51,7 +51,7 @@ class CrpdRouteTableEntry(RouteTableEntry):
 
         self.entries: List[CrpdRouteEntry] = [CrpdRouteEntry(r) for r in rt_data["rt-entry"]]
 
-    def expand_nh(self) -> None:
+    def expand_nh(self) -> NoReturn:
         expanded_entries: List[CrpdRouteEntry] = []
         for entry in self.entries:
             if len(entry.nexthops) <= 1:
@@ -86,7 +86,7 @@ class CrpdRouteTable(RouteTable):
         # route table entries
         self.entries = [CrpdRouteTableEntry(e) for e in self.inet0["rt"]]
 
-    def expand_rt_entry(self) -> None:
+    def expand_rt_entry(self) -> NoReturn:
         expanded_entries: List[CrpdRouteTableEntry] = []
         for entry in self.entries:
             entry.expand_nh()
