@@ -1,6 +1,8 @@
 .idea/
 .vscode/
 sim_env_data/
+check_answer/
+config.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
