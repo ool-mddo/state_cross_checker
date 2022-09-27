@@ -3,40 +3,48 @@
 export PYTHONPATH="./src"
 ANSWER_DIR="./check_answer"
 NODES="rt1 rt2 rt3 rt4"
-RT_ANS_SUFFIX="_route_answer.json"
-OSPFNEIGH_ANS_SUFFIX="_ospfneigh_answer.json"
+
+function answer_file_suffix() {
+  table=$1
+  echo "_${table}_answer.json"
+}
+
+function answer_file() {
+  node=$1
+  table=$2
+  suffix=$(answer_file_suffix "$table")
+  echo "${ANSWER_DIR}/${node}${suffix}"
+}
 
 mkdir -p "$ANSWER_DIR"
 
-for node in $NODES
+for table in route ospfneigh
 do
-  echo "# Node: $node" 1>&2
-  config_file="${ANSWER_DIR}/${node}_config.json"
-  sed -e "s/#{node_name}/$node/g" config.json.template > "$config_file"
-  # routing table check
-  python main.py -t route -c "$config_file" | jq . > "${ANSWER_DIR}/${node}${RT_ANS_SUFFIX}"
-  # ospf neighbor table check
-  python main.py -t ospfneigh -c "$config_file" | jq . > "${ANSWER_DIR}/${node}${OSPFNEIGH_ANS_SUFFIX}"
-done
+  echo "* Check table: $table"
 
-# check answer stats (route)
-for answer_file in "$ANSWER_DIR"/*"$RT_ANS_SUFFIX"
-do
-  found_count=$(jq ".found | length" < "$answer_file")
-  only_bf_count=$(jq ".only_bf_rt | length" < "$answer_file")
-  only_crpd_count=$(jq ".only_crpd_rt | length" < "$answer_file")
-  node_name=${answer_file##.*/}
-  node_name=${node_name%$RT_ANS_SUFFIX}
-  echo "Node: $node_name, Found: $found_count, Only_cRPD: $only_crpd_count, Only_BF: $only_bf_count"
-done
+  # generate check result
+  echo "  * Generate cross-check result"
+  for node in $NODES
+  do
+    answer_file=$(answer_file "$node" "$table")
+    echo "    * Node: $node, Result: $answer_file"
 
-# check answer stats (ospfneigh)
-for answer_file in "$ANSWER_DIR"/*"$OSPFNEIGH_ANS_SUFFIX"
-do
-  found_count=$(jq ".found | length" < "$answer_file")
-  only_bf_count=$(jq ".only_bf_ospfneigh | length" < "$answer_file")
-  only_crpd_count=$(jq ".only_crpd_ospfneigh | length" < "$answer_file")
-  node_name=${answer_file##.*/}
-  node_name=${node_name%$OSPFNEIGH_ANS_SUFFIX}
-  echo "Node: $node_name, Found: $found_count, Only_cRPD: $only_crpd_count, Only_BF: $only_bf_count"
+    # config file
+    config_file="${ANSWER_DIR}/${node}_config.json"
+    sed -e "s/#{node_name}/$node/g" config.json.template > "$config_file"
+
+    # state table check
+    python main.py -t "$table" -c "$config_file" | jq . > "$answer_file"
+  done
+
+  # check stats of the result
+  echo "  * Check stats"
+  for node in $NODES
+  do
+    answer_file=$(answer_file "$node" "$table")
+    both_count=$(jq ".both | length" "$answer_file")
+    only_crpd_count=$(jq ".only_crpd | length" "$answer_file")
+    only_bf_count=$(jq ".only_bf | length" "$answer_file")
+    echo "    * Node: $node, both: $both_count, only_crpd: $only_crpd_count, only_bf: $only_bf_count"
+  done
 done

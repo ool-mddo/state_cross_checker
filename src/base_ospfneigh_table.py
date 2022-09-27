@@ -1,10 +1,11 @@
 import json
 import os
+from state_table import StateTableEntry, StateTable
 from typing import Dict, List, Optional
 import utility as util
 
 
-class OspfNeighborTableEntry:
+class OspfNeighborTableEntry(StateTableEntry):
     def __init__(self):
         self.address: str = "_undefined_"  # IP address
         self.interface: str = "_undefined_"
@@ -22,8 +23,9 @@ class OspfNeighborTableEntry:
         }
 
 
-class OspfNeighborTable:
+class OspfNeighborTable(StateTable):
     def __init__(self):
+        super().__init__()
         self.table_name = "_ospf_neighbor_"
         self.entries: List[OspfNeighborTableEntry] = []
 

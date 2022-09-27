@@ -1,6 +1,7 @@
-from typing import Dict, List, Optional
-import os
 import json
+import os
+from state_table import StateTableEntry, StateTable
+from typing import Dict, List, Optional
 
 
 class RouteEntryNextHop:
@@ -30,7 +31,7 @@ class RouteEntry:
         }
 
 
-class RouteTableEntry:
+class RouteTableEntry(StateTableEntry):
     def __init__(self):
         self.destination: str = "_undefined_"  # IP address + prefix-length ("a.b.c.d/nn")
         self.entries: List[RouteEntry] = []
@@ -39,8 +40,9 @@ class RouteTableEntry:
         return {"destination": self.destination, "entries": [e.to_dict() for e in self.entries]}
 
 
-class RouteTable:
+class RouteTable(StateTable):
     def __init__(self):
+        super().__init__()
         self.table_name = "_undefined_"
         self.entries: List[RouteTableEntry] = []
 
