@@ -17,15 +17,16 @@ class StateTable(ABC):
 
     def __init__(self):
         """Constructor"""
+        self.table_name = "_undefined_"
         self.entries: List[StateTableEntry] = []
 
     @abstractmethod
     def find_entry_equiv(self, entry: StateTableEntry) -> Optional[StateTableEntry]:
         """Find an entry equivalent given one"""
 
-    @abstractmethod
     def to_dict(self) -> Dict:
         """Convert self to dict"""
+        return {"table_name": self.table_name, "entries": [e.to_dict() for e in self.entries]}
 
     @staticmethod
     def _read_json_file(file: str) -> Dict:

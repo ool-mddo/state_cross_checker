@@ -42,6 +42,3 @@ class OspfNeighborTable(StateTable):
             util.warn(f"Found multiple candidate ospf-neighbor-entries: #{candidate_entries}")
 
         return candidate_entries[0]
-
-    def to_dict(self) -> Dict:
-        return {"table_name": self.table_name, "entries": [e.to_dict() for e in self.entries]}
