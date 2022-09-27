@@ -49,11 +49,11 @@ class RouteTable:
         with open(os.path.expanduser(file), "r") as route_file:
             return json.load(route_file)
 
-    def find_all_entry_by_destination(self, dst: str) -> List[RouteTableEntry]:
-        return [e for e in self.entries if e.destination == dst]
+    def find_all_entries_by_destination(self, destination: str) -> List[RouteTableEntry]:
+        return [e for e in self.entries if e.destination == destination]
 
-    def find_entry_equiv(self, dst: RouteTableEntry) -> Optional[RouteTableEntry]:
-        candidate_entries = self.find_all_entry_by_destination(dst.destination)
+    def find_entry_equiv(self, rt_entry: RouteTableEntry) -> Optional[RouteTableEntry]:
+        candidate_entries = self.find_all_entries_by_destination(rt_entry.destination)
         if len(candidate_entries) == 0:
             return None
 
@@ -62,9 +62,9 @@ class RouteTable:
             for entry in candidate_entries:
                 if (
                     len(entry.entries) > 0
-                    and len(dst.entries) > 0
-                    and entry.entries[0].nexthops[0].to == dst.entries[0].nexthops[0].to
-                    or entry.entries[0].nexthops[0].via == dst.entries[0].nexthops[0].via
+                    and len(rt_entry.entries) > 0
+                    and entry.entries[0].nexthops[0].to == rt_entry.entries[0].nexthops[0].to
+                    or entry.entries[0].nexthops[0].via == rt_entry.entries[0].nexthops[0].via
                 ):
                     return entry
 

@@ -8,8 +8,12 @@ def debug(message: str) -> NoReturn:
 
 
 def error(message: str) -> NoReturn:
-    print(f"Error: {message}", file=sys.stderr)
+    print(f"ERROR: {message}", file=sys.stderr)
     sys.exit(1)
+
+
+def warn(message: str) -> NoReturn:
+    print(f"WARNING: {message}", file=sys.stderr)
 
 
 def warn_multiple(key: str, data: Dict) -> NoReturn:
