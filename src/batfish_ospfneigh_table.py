@@ -1,5 +1,5 @@
-from base_ospfneigh_table import OspfNeighborTable, OspfNeighborTableEntry
 from typing import Dict
+from base_ospfneigh_table import OspfNeighborTable, OspfNeighborTableEntry
 
 
 class BatfishOspfNeighborTableEntry(OspfNeighborTableEntry):

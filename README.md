@@ -26,3 +26,18 @@ python get_sim_env_table.py
 ```shell
 python main.py
 ```
+
+## Development
+
+Format
+
+```shell
+black **/*.py
+```
+
+Lint
+
+```shell
+flake8 --config .config/flake8 **/*.py
+pylint --rcfile .config/pylintrc **/*.py
+```

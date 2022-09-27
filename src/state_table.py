@@ -1,21 +1,33 @@
 from abc import ABC, abstractmethod
+import os
+import json
 from typing import Dict, List, Optional
 
 
 class StateTableEntry(ABC):
+    """Abstract class of state table entry"""
+
     @abstractmethod
     def to_dict(self) -> Dict:
-        pass
+        """Convert self to dict"""
 
 
 class StateTable(ABC):
+    """Abstract class of state table"""
+
     def __init__(self):
+        """Constructor"""
         self.entries: List[StateTableEntry] = []
 
     @abstractmethod
     def find_entry_equiv(self, entry: StateTableEntry) -> Optional[StateTableEntry]:
-        pass
+        """Find an entry equivalent given one"""
 
     @abstractmethod
     def to_dict(self) -> Dict:
-        pass
+        """Convert self to dict"""
+
+    @staticmethod
+    def _read_json_file(file: str) -> Dict:
+        with open(os.path.expanduser(file), "r", encoding="UTF-8") as route_file:
+            return json.load(route_file)

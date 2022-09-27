@@ -1,13 +1,12 @@
-from base_route_table import RouteEntryNextHop, RouteEntry, RouteTableEntry, RouteTable
-import utility as util
 import copy
 import sys
 from typing import Dict, List, NoReturn
+import utility as util
+from base_route_table import RouteEntryNextHop, RouteEntry, RouteTableEntry, RouteTable
 
 
 class CrpdRouteEntryNextHop(RouteEntryNextHop):
     def __init__(self, rt_nh: Dict):
-
         super().__init__()
         if "to" in rt_nh:
             self.to = rt_nh["to"][0]["data"]
@@ -52,16 +51,17 @@ class CrpdRouteTableEntry(RouteTableEntry):
         self.entries: List[CrpdRouteEntry] = [CrpdRouteEntry(r) for r in rt_data["rt-entry"]]
 
     def expand_nh(self) -> NoReturn:
+        """Expand a entry that have multiple next-hops to multiple entries that have a next-hop"""
         expanded_entries: List[CrpdRouteEntry] = []
         for entry in self.entries:
             if len(entry.nexthops) <= 1:
                 expanded_entries.append(entry)  # nothing to do
                 continue
 
-            for i in range(len(entry.nexthops)):
-                e = copy.deepcopy(entry)
-                e.nexthops = [entry.nexthops[i]]
-                expanded_entries.append(e)
+            for nexthop in entry.nexthops:
+                copy_entry = copy.deepcopy(entry)
+                copy_entry.nexthops = [nexthop]
+                expanded_entries.append(copy_entry)
 
         # !!OVERWRITE!!
         self.entries = expanded_entries
@@ -87,6 +87,7 @@ class CrpdRouteTable(RouteTable):
         self.entries = [CrpdRouteTableEntry(e) for e in self.inet0["rt"]]
 
     def expand_rt_entry(self) -> NoReturn:
+        """Expand a table-entry that have multiple route-entries to multiple table-entries that have a route-entry"""
         expanded_entries: List[CrpdRouteTableEntry] = []
         for entry in self.entries:
             entry.expand_nh()
@@ -94,10 +95,10 @@ class CrpdRouteTable(RouteTable):
                 expanded_entries.append(entry)
                 continue
 
-            for i in range(len(entry.entries)):
-                e = copy.deepcopy(entry)
-                e.entries = [entry.entries[i]]
-                expanded_entries.append(e)
+            for nexthop in entry.entries:
+                copy_entry = copy.deepcopy(entry)
+                copy_entry.entries = [nexthop]
+                expanded_entries.append(copy_entry)
 
         # !!OVERWRITE!!
         self.entries = expanded_entries

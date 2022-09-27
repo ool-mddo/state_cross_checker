@@ -1,5 +1,5 @@
-from base_route_table import RouteEntryNextHop, RouteEntry, RouteTableEntry, RouteTable
 from typing import Dict, List
+from base_route_table import RouteEntryNextHop, RouteEntry, RouteTableEntry, RouteTable
 
 
 class BatfishRouteEntryNextHop(RouteEntryNextHop):

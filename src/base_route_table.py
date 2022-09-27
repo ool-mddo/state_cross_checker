@@ -1,15 +1,15 @@
-import json
-import os
-from state_table import StateTableEntry, StateTable
 from typing import Dict, List, Optional
+from state_table import StateTableEntry, StateTable
 
 
 class RouteEntryNextHop:
     def __init__(self):
+        # pylint: disable=invalid-name
         self.to: str = "_undefined_"  # IP address ("a.b.c.d")
         self.via: str = "_undefined_"
 
     def to_dict(self) -> Dict:
+        """Convert self to dict"""
         return {"to": self.to, "via": self.via}
 
 
@@ -22,6 +22,7 @@ class RouteEntry:
         self.metric: int = -1
 
     def to_dict(self) -> Dict:
+        """Convert self to dict"""
         return {
             "nexthop": [n.to_dict() for n in self.nexthops],
             "nexthop_type": self.nexthop_type,
@@ -46,14 +47,11 @@ class RouteTable(StateTable):
         self.table_name = "_undefined_"
         self.entries: List[RouteTableEntry] = []
 
-    @staticmethod
-    def _read_json_file(file: str) -> Dict:
-        with open(os.path.expanduser(file), "r") as route_file:
-            return json.load(route_file)
-
     def find_all_entries_by_destination(self, destination: str) -> List[RouteTableEntry]:
+        """Find all entries that matches given destination"""
         return [e for e in self.entries if e.destination == destination]
 
+    # pylint: disable=arguments-renamed
     def find_entry_equiv(self, rt_entry: RouteTableEntry) -> Optional[RouteTableEntry]:
         candidate_entries = self.find_all_entries_by_destination(rt_entry.destination)
         if len(candidate_entries) == 0:
