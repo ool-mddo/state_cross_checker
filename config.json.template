@@ -14,7 +14,7 @@
   },
   "dev_env": {
     "device_name": "#{node_name}",
-    "ospf_routes_file": "~/ool-mddo/mddo-nodered/data/convert_#{node_name}_route.json",
-    "ospf_neighbors_file": "~/ool-mddo/mddo-nodered/data/convert_#{node_name}_ospfneigh.json"
+    "ospf_routes_file": "~/ool-mddo/mddo-nodered/data/#{node_name}_route.json",
+    "ospf_neighbors_file": "~/ool-mddo/mddo-nodered/data/#{node_name}_ospfneigh.json"
   }
 }

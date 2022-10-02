@@ -1,3 +1,4 @@
+import re
 from typing import Dict, List, Optional
 from state_table import StateTableEntry, StateTable
 
@@ -60,12 +61,16 @@ class RouteTable(StateTable):
         if len(candidate_entries) > 1:
             # all route-table entries must be expanded (only 1 entry, 1 nexthop)
             for entry in candidate_entries:
-                if (
-                    len(entry.entries) > 0
-                    and len(rt_entry.entries) > 0
-                    and entry.entries[0].nexthops[0].to == rt_entry.entries[0].nexthops[0].to
-                    or entry.entries[0].nexthops[0].via == rt_entry.entries[0].nexthops[0].via
-                ):
+                if not (len(entry.entries) > 0 and len(rt_entry.entries) > 0):
+                    continue
+
+                self_nh = entry.entries[0].nexthops[0]  # alias
+                other_nh = rt_entry.entries[0].nexthops[0]  # alias
+                if self_nh.to == other_nh.to or self_nh.via in [
+                    other_nh.via,
+                    other_nh.via + ".0",
+                    re.sub(r"\.\d+$", "", other_nh.via),
+                ]:
                     return entry
 
         return candidate_entries[0]
