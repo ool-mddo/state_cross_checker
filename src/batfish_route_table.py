@@ -13,7 +13,8 @@ class BatfishRouteEntry(RouteEntry):
     def __init__(self, rt_data: Dict):
         super().__init__()
         self.nexthops = [BatfishRouteEntryNextHop(rt_data)]
-        self.nexthop_type = rt_data["Next_Hop"]["type"]
+        if "type" in rt_data["Next_Hop"]:
+            self.nexthop_type = rt_data["Next_Hop"]["type"]
         self.preference = rt_data["Admin_Distance"]
         self.protocol = rt_data["Protocol"]
         self.metric = rt_data["Metric"]
