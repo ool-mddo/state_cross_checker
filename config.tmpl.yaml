@@ -1,0 +1,19 @@
+batfish:
+  type: batfish
+  bf_host: localhost
+  bf_nw_name: {{ network_name }}
+  bf_ss_name: {{ snapshot_name }}
+  bf_dir: ~/ool-mddo/playground/configs/{{ network_name }}/{{ snapshot_name }}
+  state_dir: ~/ool-mddo/state_cross_checker/batfish_states/{{ network_name }}/{{ snapshot_name }}
+  ospf_routes_file: ospf_route.json
+  ospf_neighbors_file: ospf_neighbor.json
+original:
+  type: original
+  state_dir: ~/ool-mddo/playground/configs/{{ network_name }}/{{ snapshot_name }}/states
+  ospf_routes_file:  ospf-route.json
+  ospf_neighbors_file: ospf-neighbor.json
+emulated:
+  type: emulated
+  state_dir: ~/ool-mddo/playground/configs/{{ network_name }}/{{ snapshot_name }}/states
+  ospf_routes_file: route.json
+  ospf_neighbors_file: ospf_neighbor.json
