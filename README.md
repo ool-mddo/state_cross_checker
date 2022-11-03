@@ -88,16 +88,15 @@ python bf_state.py -n mddo-ospf -s emulated_asis
 
 Specify check targets using options:
 
-* Source
-  * `-se`/`--src-env`: Source environment
-  * `-sn`/`--src-nw`: Source network
-  * `-ss`/`--src-ss`: Source snapshot
-* Destination
-  * `-de`/`--dst-env`: Destination environment
-  * `-dn`/`--dst-nw`: Destination network
-  * `-ds`/`--dst-ss`: Destination snapshot
-* `-tn`/`--target-node`: Target node
+* `-d`/`--node`: Target node (device)
+* `-n`/`--network`: Target network
 * `-t`/`--table`: State table to check `[route,ospf_neighbor]`
+* Source snapshot
+  * `-se`/`--src-env`: Source environment
+  * `-ss`/`--src-ss`: Source snapshot
+* Destination snapshot
+  * `-de`/`--dst-env`: Destination environment
+  * `-ds`/`--dst-ss`: Destination snapshot
 
 other options:
 
@@ -105,9 +104,8 @@ other options:
 * `--debug`: (optional) debug print
 
 ```shell
-python diff_state.py -t route -tn rt1 \
-  -se batfish -sn mddo-ospf -ss emulated_asis \
-  -de emulated -dn mddo-ospf -ds emulated_asis
+python diff_state.py -t route -d rt1 -n mddo-ospf \
+  -se batfish -ss emulated_asis -de emulated -ds emulated_asis
 ```
 
 ## Development

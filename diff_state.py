@@ -76,20 +76,19 @@ if __name__ == "__main__":
         "--table", "-t", required=True, choices=["route", "ospf_neighbor"], help="Choice target state table"
     )
     parser.add_argument("--debug", action="store_true", help="raw data to debug")
-    # src
+    # target
+    parser.add_argument("--network", "-n", required=True, type=str, help="Target network")
+    parser.add_argument("--node", "-d", required=True, type=str, help="Target node (device)")
+    # target snapshot (source)
     parser.add_argument(
         "--src-env", "-se", required=True, choices=["batfish", "original", "emulated"], help="Choise source env"
     )
-    parser.add_argument("--src-nw", "-sn", required=True, type=str, help="Source network name")
-    parser.add_argument("--src-ss", "-ss", required=True, type=str, help="Source snapshot name")
-    # dst
+    parser.add_argument("--src-snapshot", "-ss", required=True, type=str, help="Source snapshot name")
+    # target snapshot (destination)
     parser.add_argument(
         "--dst-env", "-de", required=True, choices=["batfish", "original", "emulated"], help="Choise destination env"
     )
-    parser.add_argument("--dst-nw", "-dn", required=True, type=str, help="Destination network name")
-    parser.add_argument("--dst-ss", "-ds", required=True, type=str, help="Destination snapshot name")
-    # target node (common in src/dst)
-    parser.add_argument("--target-node", "-tn", required=True, type=str, help="Target node")
+    parser.add_argument("--dst-snapshot", "-ds", required=True, type=str, help="Destination snapshot name")
 
     args = parser.parse_args()
 
@@ -97,9 +96,9 @@ if __name__ == "__main__":
         util.error("config file not found")
 
     with open(os.path.expanduser(args.config), "r") as config_file:
-        src_config = choice_config(args.config, args.src_env, args.src_nw, args.src_ss)
-        dst_config = choice_config(args.config, args.dst_env, args.dst_nw, args.dst_ss)
-        node_name = args.target_node
+        src_config = choice_config(args.config, args.src_env, args.network, args.src_snapshot)
+        dst_config = choice_config(args.config, args.dst_env, args.network, args.dst_snapshot)
+        node_name = args.node
 
         if args.table == "route":
             src_rt = route_table(src_config, node_name)
