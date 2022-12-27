@@ -10,10 +10,14 @@ batfish:
 original:
   type: original
   state_dir: ~/ool-mddo/playground/configs/{{ network_name }}/{{ snapshot_name }}/states
-  ospf_routes_file:  ospf-route.json
-  ospf_neighbors_file: ospf-neighbor.json
+  ospf_routes_dir: showroute
+  ospf_routes_file:  {{ node_name }}_show_route.json
+  ospf_neighbors_dir: showospfneigh
+  ospf_neighbors_file: {{ node_name }}_show_ospf_neigh.json
 emulated:
   type: emulated
   state_dir: ~/ool-mddo/playground/configs/{{ network_name }}/{{ snapshot_name }}/states
-  ospf_routes_file: route.json
-  ospf_neighbors_file: ospf_neighbor.json
+  ospf_routes_dir: showroute
+  ospf_routes_file: {{ node_name }}_show_route.json
+  ospf_neighbors_dir: showospfneigh
+  ospf_neighbors_file: {{ node_name }}_show_ospf_neigh.json

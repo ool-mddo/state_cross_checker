@@ -1,13 +1,16 @@
 import copy
+import os
 import sys
 from typing import Dict, List, NoReturn
 import utility as util
+import yaml
 from base_route_table import RouteEntryNextHop, RouteEntry, RouteTableEntry, RouteTable
 
 
 class CrpdRouteEntryNextHop(RouteEntryNextHop):
     def __init__(self, rt_nh: Dict):
         super().__init__()
+
         if "to" in rt_nh:
             self.to = rt_nh["to"][0]["data"]
 
@@ -102,3 +105,10 @@ class CrpdRouteTable(RouteTable):
 
         # !!OVERWRITE!!
         self.entries = expanded_entries
+
+
+if __name__ == "__main__":
+    file = "~/ool-mddo/playground/configs/mddo-ospf/emulated_asis/status/showroute/regiona-rt1_show_route.txt"
+    crpd_rt = CrpdRouteTable(os.path.expanduser(file))
+    crpd_rt.expand_rt_entry()
+    print(yaml.dump(crpd_rt.to_dict()))

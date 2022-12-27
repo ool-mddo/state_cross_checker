@@ -34,11 +34,11 @@ def cross_check(src_table: StateTable, dst_table: StateTable) -> Dict:
     return result
 
 
-def choice_config(config_file: str, target_env: str, target_nw: str, target_ss: str) -> Dict:
+def choice_config(config_file: str, target_env: str, target_nw: str, target_ss: str, node: str) -> Dict:
     # load config (config template)
     env = Environment(loader=FileSystemLoader("./", encoding="utf8"))
     template = env.get_template(config_file)
-    template_param = {"network_name": target_nw, "snapshot_name": target_ss}
+    template_param = {"network_name": target_nw, "snapshot_name": target_ss, "node_name": node}
 
     # render & parse config
     config_string = template.render(template_param)
@@ -96,15 +96,19 @@ if __name__ == "__main__":
         util.error("config file not found")
 
     with open(os.path.expanduser(args.config), "r") as config_file:
-        src_config = choice_config(args.config, args.src_env, args.network, args.src_snapshot)
-        dst_config = choice_config(args.config, args.dst_env, args.network, args.dst_snapshot)
+        src_config = choice_config(args.config, args.src_env, args.network, args.src_snapshot, args.node)
+        dst_config = choice_config(args.config, args.dst_env, args.network, args.dst_snapshot, args.node)
         node_name = args.node
+
+        if args.debug:
+            print("# DEBUG: src_config : ", src_config, file=sys.stderr)
+            print("# DEBUG: dst_config : ", dst_config, file=sys.stderr)
 
         if args.table == "route":
             src_rt = route_table(src_config, node_name)
             dst_rt = route_table(dst_config, node_name)
             if args.debug:
-                print(json.dumps([src_rt.to_dict(), dst_rt.to_dict()]))
+                print(json.dumps([src_rt.to_dict(), dst_rt.to_dict()]), file=sys.stderr)
             else:
                 print(json.dumps(cross_check(src_rt, dst_rt)))
             sys.exit(0)
@@ -113,6 +117,6 @@ if __name__ == "__main__":
             src_ospf_neigh = ospf_neighbor_table(src_config, node_name)
             dst_ospf_neigh = ospf_neighbor_table(dst_config, node_name)
             if args.debug:
-                print(json.dumps([src_ospf_neigh.to_dict(), dst_ospf_neigh.to_dict()]))
+                print(json.dumps([src_ospf_neigh.to_dict(), dst_ospf_neigh.to_dict()]), file=sys.stderr)
             else:
                 print(json.dumps(cross_check(src_ospf_neigh, dst_ospf_neigh)))
