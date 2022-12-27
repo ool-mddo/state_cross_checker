@@ -1,8 +1,8 @@
 # NOTICE: export PYTHONPATH="./src"
 from src.base_ospfneigh_table import OspfNeighborTable
 from src.base_route_table import RouteTable
-from src.crpd_route_table import CrpdRouteTable
-from src.crpd_ospfneigh_table import CrpdOspfNeighborTable
+from src.juniper_route_table import JuniperRouteTable
+from src.juniper_ospfneigh_table import JuniperOspfNeighborTable
 from src.batfish_route_table import BatfishRouteTable
 from src.batfish_ospfneigh_table import BatfishOspfNeighborTable
 from src.state_table import StateTable
@@ -56,7 +56,7 @@ def route_table(config: Dict, node_name: str) -> RouteTable:
     if config["type"] == "batfish":
         return BatfishRouteTable(file)
 
-    rt = CrpdRouteTable(file)
+    rt = JuniperRouteTable(file)
     rt.expand_rt_entry()
     return rt
 
@@ -66,7 +66,7 @@ def ospf_neighbor_table(config: Dict, node_name: str) -> OspfNeighborTable:
     if config["type"] == "batfish":
         return BatfishOspfNeighborTable(file)
 
-    return CrpdOspfNeighborTable(file)
+    return JuniperOspfNeighborTable(file)
 
 
 if __name__ == "__main__":
