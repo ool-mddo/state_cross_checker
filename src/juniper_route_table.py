@@ -108,7 +108,8 @@ class CrpdRouteTable(RouteTable):
 
 
 if __name__ == "__main__":
-    file = "~/ool-mddo/playground/configs/mddo-ospf/emulated_asis/status/showroute/regiona-rt1_show_route.txt"
+    # file = "~/ool-mddo/playground/configs/mddo-ospf/emulated_asis/status/showroute/regiona-rt1_show_route.txt"
+    file = "~/ool-mddo/playground/configs/mddo-ospf/original_asis/status/showroute/RegionA-RT1_show_route.txt"
     crpd_rt = CrpdRouteTable(os.path.expanduser(file))
     crpd_rt.expand_rt_entry()
     print(yaml.dump(crpd_rt.to_dict()))
