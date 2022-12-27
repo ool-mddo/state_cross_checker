@@ -2,8 +2,8 @@ import copy
 import os
 import sys
 from typing import Dict, List, NoReturn
-import utility as util
 import yaml
+import utility as util
 from base_route_table import RouteEntryNextHop, RouteEntry, RouteTableEntry, RouteTable
 
 
@@ -71,9 +71,9 @@ class JuniperRouteTableEntry(RouteTableEntry):
 
 
 class JuniperRouteTable(RouteTable):
-    def __init__(self, file: str):
+    def __init__(self, file_path: str):
         super().__init__()
-        self.data = self._read_json_file(file)
+        self.data = self._read_json_file(file_path)
 
         # contains ipv4/v6 routing table as default
         route_tables = self.data["route-information"][0]["route-table"]
@@ -83,7 +83,7 @@ class JuniperRouteTable(RouteTable):
             (t for t in route_tables if "table-name" in t and t["table-name"][0]["data"] == self.table_name), None
         )
         if self.inet0 is None:
-            util.error(f"inet.0 not found in {file}")
+            util.error(f"inet.0 not found in {file_path}")
             sys.exit(1)
 
         # route table entries
@@ -108,8 +108,8 @@ class JuniperRouteTable(RouteTable):
 
 
 if __name__ == "__main__":
-    # file = "~/ool-mddo/playground/configs/mddo-ospf/emulated_asis/status/showroute/regiona-rt1_show_route.txt"
-    file = "~/ool-mddo/playground/configs/mddo-ospf/original_asis/status/showroute/RegionA-RT1_show_route.txt"
+    BASE_DIR = "~/ool-mddo/playground/configs/mddo-ospf/emulated_asis/status/showroute"
+    file = os.path.join(BASE_DIR, "RegionA-RT1_show_route.txt")
     juniper_rt = JuniperRouteTable(os.path.expanduser(file))
     juniper_rt.expand_rt_entry()
     print(yaml.dump(juniper_rt.to_dict()))

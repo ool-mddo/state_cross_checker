@@ -1,6 +1,7 @@
+import os
 from typing import Dict
-from base_ospfneigh_table import OspfNeighborTable, OspfNeighborTableEntry
 import yaml
+from base_ospfneigh_table import OspfNeighborTable, OspfNeighborTableEntry
 import utility as util
 
 
@@ -16,11 +17,11 @@ class JuniperOspfNeighborTableEntry(OspfNeighborTableEntry):
 
 
 class JuniperOspfNeighborTable(OspfNeighborTable):
-    def __init__(self, file: str):
+    def __init__(self, file_path: str):
         super().__init__()
 
         self.table_name = "_juniper_ospf_neighbor_"
-        data = self._read_json_file(file)
+        data = self._read_json_file(file_path)
 
         if len(data["ospf-neighbor-information"]) > 1:
             util.warn_multiple("ospf-neighbor-information", data["ospf-neighbor-information"])
@@ -30,6 +31,7 @@ class JuniperOspfNeighborTable(OspfNeighborTable):
 
 
 if __name__ == "__main__":
-    file = "~/ool-mddo/playground/configs/mddo-ospf/emulated_asis/status/showospfneigh/regionc-rt1_show_ospf_neigh.txt"
+    BASE_DIR = "~/ool-mddo/playground/configs/mddo-ospf/emulated_asis/status/showospfneigh"
+    file = os.path.join(BASE_DIR, "regionc-rt1_show_ospf_neigh.txt")
     juniper_ont = JuniperOspfNeighborTable(file)
     print(yaml.dump(juniper_ont.to_dict()))

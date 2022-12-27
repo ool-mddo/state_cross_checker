@@ -41,15 +41,17 @@ class CiscoRouteTableEntry(RouteTableEntry):
 class CiscoRouteTable(RouteTable):
     LONG_PROTO_TABLE = {"C": "Direct", "L": "Local", "S": "Static", "O": "OSPF", "B": "BGP"}
 
-    def __init__(self, file: str):
+    def __init__(self, file_path: str):
         super().__init__()
-        self._load_table_data(file)
 
-    def _load_table_data(self, file: str) -> NoReturn:
-        with open(file) as f:
+        # pylint: disable=duplicate-code
+        self._load_table_data(file_path)
 
+    def _load_table_data(self, file_path: str) -> NoReturn:
+        # pylint: disable=duplicate-code
+        with open(file_path, encoding="UTF-8") as file_io:
             index = 0
-            for line in f.read().splitlines():
+            for line in file_io.read().splitlines():
                 index += 1
                 print(f"# DEBUG-{index}: LINE={line}", file=sys.stderr)
 
@@ -58,6 +60,7 @@ class CiscoRouteTable(RouteTable):
                 # - protocol types
 
                 matched = False
+                # pylint: disable=duplicate-code
                 for match_info in self._generate_match_info_list():
                     print(
                         f"# DEBUG-{index}: regexp={match_info['regexp']}, type={match_info['type']}", file=sys.stderr
@@ -71,7 +74,7 @@ class CiscoRouteTable(RouteTable):
                     continue
 
                 # VRF name (routing table name)
-                match = re.search(rf"VRF: (?P<table_name>.+)", line)
+                match = re.search(r"VRF: (?P<table_name>.+)", line)
                 if match:
                     self.table_name = match.group("table_name")
 
@@ -119,7 +122,7 @@ class CiscoRouteTable(RouteTable):
         prefix = mdict["prefix"]
         intf = mdict["intf"] if "intf" in mdict else None
 
-        print(f"# DEBUG: match direct connected : proto={proto} prefix={prefix}, intf={intf}", file=sys.stderr)
+        print(f"# DEBUG: entry (direct) : proto={proto} prefix={prefix}, intf={intf}", file=sys.stderr)
 
         rt_entry = {"protocol": proto, "preference": 0}
         if intf is not None:
@@ -132,33 +135,33 @@ class CiscoRouteTable(RouteTable):
         prefix = mdict["prefix"]
         preference = mdict["preference"]
         metric = mdict["metric"]
-        ip = mdict["ip"]
-        intf = mdict["intf"] if "intf" in mdict else None
+        via_ip = mdict["ip"]
+        via_intf = mdict["intf"] if "intf" in mdict else None
 
         print(
-            f"# DEBUG: match entry : proto={proto}, [{preference}/{metric}] prefix={prefix}, ip={ip}, intf={intf}",
+            f"# DEBUG: entry : proto={proto}, [{preference}/{metric}] prefix={prefix}, ip={via_ip}, intf={via_intf}",
             file=sys.stderr,
         )
 
         rt_entry = {"protocol": proto, "preference": preference, "metric": metric}
-        if intf is not None:
-            rt_entry["nh"] = [{"to": ip, "via": intf}]
+        if via_intf is not None:
+            rt_entry["nh"] = [{"to": via_ip, "via": via_intf}]
         else:
-            rt_entry["nh"] = [{"to": ip}]
+            rt_entry["nh"] = [{"to": via_ip}]
 
         self.entries.append(CiscoRouteTableEntry({"rt-destination": prefix, "rt-entry": [rt_entry]}))
 
     def _add_nexthop_to_before_entry(self, mdict: Dict) -> NoReturn:
-        ip = mdict["ip"]
-        intf = mdict["intf"] if "intf" in mdict else None
+        via_ip = mdict["ip"]
+        via_intf = mdict["intf"] if "intf" in mdict else None
 
-        print(f"# DEBUG: match entry (same dst): ip={ip}, intf={intf}", file=sys.stderr)
+        print(f"# DEBUG: match entry (same dst): ip={via_ip}, intf={via_intf}", file=sys.stderr)
 
         rt_entry: CiscoRouteTableEntry = self.entries[-1]
-        if intf is not None:
-            rt_entry.entries[-1].nexthops.append(CiscoRouteEntryNextHop({"to": ip, "via": intf}))
+        if via_intf is not None:
+            rt_entry.entries[-1].nexthops.append(CiscoRouteEntryNextHop({"to": via_ip, "via": via_intf}))
         else:
-            rt_entry.entries[-1].nexthops.append(CiscoRouteEntryNextHop({"to": ip}))
+            rt_entry.entries[-1].nexthops.append(CiscoRouteEntryNextHop({"to": via_ip}))
 
     def _long_proto(self, short):
         if short in self.LONG_PROTO_TABLE:
@@ -169,7 +172,8 @@ class CiscoRouteTable(RouteTable):
 
 
 if __name__ == "__main__":
-    file = "~/ool-mddo/playground/configs/mddo-ospf/original_asis/status/showroute/RegionB-RT1_show_route.txt"
-    # file = "~/ool-mddo/playground/configs/mddo-ospf/original_asis/status/showroute/RegionC-RT1_show_route.txt"
+    BASE_DIR = "~/ool-mddo/playground/configs/mddo-ospf/original_asis/status/showroute/"
+    file = os.path.join(BASE_DIR, "RegionB-RT1_show_route.txt")
+    # file = os.path.join(base_dir, "RegionC-RT1_show_route.txt")
     cisco_rt = CiscoRouteTable(os.path.expanduser(file))
     print(yaml.dump(cisco_rt.to_dict()))
