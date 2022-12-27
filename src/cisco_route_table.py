@@ -49,7 +49,7 @@ class CiscoRouteTable(RouteTable):
         with open(file) as f:
 
             index = 0
-            for line in f:
+            for line in f.read().splitlines():
                 index += 1
                 print(f"# DEBUG-{index}: LINE={line}", file=sys.stderr)
 
