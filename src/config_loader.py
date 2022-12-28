@@ -9,15 +9,24 @@ class ConfigLoader:
     def __init__(
         self, config_file: str, src_env: str, dst_env: str, network: str, src_ss: str, dst_ss: str, debug=False
     ):
-        self.debug = debug
         self.config_file = os.path.expanduser(config_file)
+        self.src_env = src_env
+        self.dst_env = dst_env
+        self.network = network
+        self.src_ss = src_ss  # source snapshot
+        self.dst_ss = dst_ss  # destination snapshot
+        self.debug = debug
+        self._load_config()
+
+    def _load_config(self):
+
         if not os.path.exists(self.config_file):
             util.error("config file not found")
 
-        config_data = self._read_config(network, src_ss)
+        config_data = self._read_config(self.network, self.src_ss)
         self.original_node_params = config_data["original_node_params"]
-        self.src_config = self._choose_config(src_env, network, src_ss)
-        self.dst_config = self._choose_config(dst_env, network, dst_ss)
+        self.src_config = self._choose_config(self.src_env, self.src_ss)
+        self.dst_config = self._choose_config(self.dst_env, self.dst_ss)
 
         if self.debug:
             util.debug(f"src_config: {self.src_config}")
@@ -34,6 +43,6 @@ class ConfigLoader:
         config_string = template.render(template_param)
         return yaml.safe_load(config_string)
 
-    def _choose_config(self, target_env: str, target_nw: str, target_ss: str) -> Dict:
-        config_data = self._read_config(target_nw, target_ss)
+    def _choose_config(self, target_env: str, target_ss: str) -> Dict:
+        config_data = self._read_config(self.network, target_ss)
         return config_data[target_env]
