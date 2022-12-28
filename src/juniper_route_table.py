@@ -1,6 +1,5 @@
 import copy
 import os
-import sys
 from typing import Dict, List, NoReturn
 import yaml
 import utility as util
@@ -71,8 +70,8 @@ class JuniperRouteTableEntry(RouteTableEntry):
 
 
 class JuniperRouteTable(RouteTable):
-    def __init__(self, file_path: str):
-        super().__init__()
+    def __init__(self, file_path: str, debug=False):
+        super().__init__(debug)
         self.data = self._read_json_file(file_path)
 
         # contains ipv4/v6 routing table as default
@@ -83,8 +82,7 @@ class JuniperRouteTable(RouteTable):
             (t for t in route_tables if "table-name" in t and t["table-name"][0]["data"] == self.table_name), None
         )
         if self.inet0 is None:
-            util.error(f"inet.0 not found in {file_path}")
-            sys.exit(1)
+            util.error_exit(f"inet.0 is not found in {file_path}")
 
         # route table entries
         self.entries = [JuniperRouteTableEntry(e) for e in self.inet0["rt"]]

@@ -13,8 +13,8 @@ class BatfishOspfNeighborTableEntry(OspfNeighborTableEntry):
 
 
 class BatfishOspfNeighborTable(OspfNeighborTable):
-    def __init__(self, file: str):
-        super().__init__()
+    def __init__(self, file: str, debug=False):
+        super().__init__(debug)
         self.table_name = "_batfish_ospf_neighbor_"
         data = self._read_json_file(file)
 

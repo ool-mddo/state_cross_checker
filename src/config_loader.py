@@ -5,6 +5,7 @@ from jinja2 import Environment, FileSystemLoader
 import utility as util
 
 
+# pylint: disable=too-many-instance-attributes
 class ConfigLoader:
     def __init__(
         self, config_file: str, src_env: str, dst_env: str, network: str, src_ss: str, dst_ss: str, debug=False
@@ -21,7 +22,7 @@ class ConfigLoader:
     def _load_config(self):
 
         if not os.path.exists(self.config_file):
-            util.error("config file not found")
+            util.error_exit(f"config file: {self.config_file} is not found")
 
         config_data = self._read_config(self.network, self.src_ss)
         self.original_node_params = config_data["original_node_params"]

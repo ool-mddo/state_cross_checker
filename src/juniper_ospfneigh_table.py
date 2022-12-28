@@ -17,8 +17,8 @@ class JuniperOspfNeighborTableEntry(OspfNeighborTableEntry):
 
 
 class JuniperOspfNeighborTable(OspfNeighborTable):
-    def __init__(self, file_path: str):
-        super().__init__()
+    def __init__(self, file_path: str, debug=False):
+        super().__init__(debug)
 
         self.table_name = "_juniper_ospf_neighbor_"
         data = self._read_json_file(file_path)

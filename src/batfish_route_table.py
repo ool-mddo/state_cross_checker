@@ -30,8 +30,8 @@ class BatfishRouteTableEntry(RouteTableEntry):
 
 
 class BatfishRouteTable(RouteTable):
-    def __init__(self, file: str):
-        super().__init__()
+    def __init__(self, file: str, debug=False):
+        super().__init__(debug)
         self.data = self._read_json_file(file)
 
         # find default entries of default vrf

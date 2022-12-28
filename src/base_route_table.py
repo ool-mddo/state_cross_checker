@@ -43,8 +43,8 @@ class RouteTableEntry(StateTableEntry):
 
 
 class RouteTable(StateTable):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, debug=False):
+        super().__init__(debug)
         self.table_name = "_undefined_"
         self.entries: List[RouteTableEntry] = []
 

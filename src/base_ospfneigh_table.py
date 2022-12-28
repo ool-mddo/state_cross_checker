@@ -23,8 +23,8 @@ class OspfNeighborTableEntry(StateTableEntry):
 
 
 class OspfNeighborTable(StateTable):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, debug=False):
+        super().__init__(debug)
         self.table_name = "_ospf_neighbor_"
         self.entries: List[OspfNeighborTableEntry] = []
 

@@ -3,6 +3,7 @@ import re
 from typing import Dict, List, NoReturn
 import yaml
 from base_route_table import RouteEntryNextHop, RouteEntry, RouteTableEntry, RouteTable
+from parseable import Parseable
 import utility as util
 
 
@@ -38,18 +39,16 @@ class CiscoRouteTableEntry(RouteTableEntry):
         self.entries: List[CiscoRouteEntry] = [CiscoRouteEntry(r) for r in rt_data["rt-entry"]]
 
 
-class CiscoRouteTable(RouteTable):
+class CiscoRouteTable(RouteTable, Parseable):
     LONG_PROTO_TABLE = {"C": "Direct", "L": "Local", "S": "Static", "O": "OSPF", "B": "BGP"}
 
     def __init__(self, file_path: str, debug=False):
-        super().__init__()
+        super().__init__(debug)
 
-        self.debug = debug
-        # pylint: disable=duplicate-code
         self._load_table_data(file_path)
 
+    # pylint: disable=duplicate-code
     def _load_table_data(self, file_path: str) -> NoReturn:
-        # pylint: disable=duplicate-code
         with open(file_path, encoding="UTF-8") as file_io:
             index = 0
             for line in file_io.read().splitlines():
@@ -60,16 +59,7 @@ class CiscoRouteTable(RouteTable):
                 # - entry lean time
                 # - protocol types
 
-                matched = False
-                # pylint: disable=duplicate-code
-                for match_info in self._generate_match_info_list():
-                    util.debug(f"# {index}: regexp={match_info['regexp']}, type={match_info['type']}", self.debug)
-                    match = re.search(match_info["regexp"], line)
-                    if match:
-                        self._add_entry_by_type(match, match_info)
-                        matched = True
-                        break
-                if matched:
+                if self._match_line(index, line, self.debug):
                     continue
 
                 # VRF name (routing table name)
@@ -138,7 +128,7 @@ class CiscoRouteTable(RouteTable):
         via_intf = mdict["intf"] if "intf" in mdict else None
 
         util.debug(
-            f"# entry : proto={proto}, [{preference}/{metric}] prefix={prefix}, ip={via_ip}, intf={via_intf}",
+            f"entry : proto={proto}, [{preference}/{metric}] prefix={prefix}, ip={via_ip}, intf={via_intf}",
             self.debug,
         )
 

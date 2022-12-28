@@ -15,10 +15,11 @@ class StateTableEntry(ABC):
 class StateTable(ABC):
     """Abstract class of state table"""
 
-    def __init__(self):
+    def __init__(self, debug=False):
         """Constructor"""
         self.table_name = "_undefined_"
         self.entries: List[StateTableEntry] = []
+        self.debug = debug
 
     @abstractmethod
     def find_entry_equiv(self, entry: StateTableEntry) -> Optional[StateTableEntry]:

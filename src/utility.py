@@ -10,8 +10,13 @@ def debug(message: str, enable=False) -> NoReturn:
 
 
 def error(message: str) -> NoReturn:
-    """error message (print and exit)"""
+    """error message (print)"""
     print(f"ERROR: {message}", file=sys.stderr)
+
+
+def error_exit(message: str) -> NoReturn:
+    """error message (print and exit)"""
+    error(message)
     sys.exit(1)
 
 

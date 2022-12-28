@@ -50,24 +50,24 @@ class StateChecker:
         file_name = f"{node_name}{config['routes_file']}"
         file_path = self._join_as_path(config["state_dir"], config["routes_dir"], file_name)
         if config["type"] == "batfish":
-            return BatfishRouteTable(file_path)
+            return BatfishRouteTable(file_path, self.debug)
         if config["type"] == "emulated" or config["type"] == "original" and node_param["type"] == "juniper":
-            route_table = JuniperRouteTable(file_path)
+            route_table = JuniperRouteTable(file_path, self.debug)
             route_table.expand_rt_entry()
             return route_table
         # config type = original and not juniper node
-        return CiscoRouteTable(file_path)
+        return CiscoRouteTable(file_path, self.debug)
 
     def _ospf_neighbor_table(self, config: Dict, node_param: Dict) -> OspfNeighborTable:
         node_name = node_param["name"] if config["type"] == "original" else node_param["name"].lower()
         file_name = f"{node_name}{config['ospf_neighbors_file']}"
         file_path = self._join_as_path(config["state_dir"], config["ospf_neighbors_dir"], file_name)
         if config["type"] == "batfish":
-            return BatfishOspfNeighborTable(file_path)
+            return BatfishOspfNeighborTable(file_path, self.debug)
         if config["type"] == "emulated" or config["type"] == "original" and node_param["type"] == "juniper":
-            return JuniperOspfNeighborTable(file_path)
+            return JuniperOspfNeighborTable(file_path, self.debug)
         # config type = original and not juniper node
-        return CiscoOspfNeighborTable(file_path)
+        return CiscoOspfNeighborTable(file_path, self.debug)
 
     def _check_route_table_for_node(self, node_param: Dict) -> Dict:
         src_rt = self._route_table(self.config.src_config, node_param)
