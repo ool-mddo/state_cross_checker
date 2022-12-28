@@ -1,10 +1,9 @@
 import os
 import re
 from typing import Dict, List, NoReturn
-
-# import sys
 import yaml
 from base_route_table import RouteEntryNextHop, RouteEntry, RouteTableEntry, RouteTable
+import utility as util
 
 
 class CiscoRouteEntryNextHop(RouteEntryNextHop):
@@ -42,9 +41,10 @@ class CiscoRouteTableEntry(RouteTableEntry):
 class CiscoRouteTable(RouteTable):
     LONG_PROTO_TABLE = {"C": "Direct", "L": "Local", "S": "Static", "O": "OSPF", "B": "BGP"}
 
-    def __init__(self, file_path: str):
+    def __init__(self, file_path: str, debug=False):
         super().__init__()
 
+        self.debug = debug
         # pylint: disable=duplicate-code
         self._load_table_data(file_path)
 
@@ -54,7 +54,7 @@ class CiscoRouteTable(RouteTable):
             index = 0
             for line in file_io.read().splitlines():
                 index += 1
-                # print(f"# DEBUG-{index}: LINE={line}", file=sys.stderr)
+                util.debug(f"{index}: LINE={line}", self.debug)
 
                 # there are several differences between cisco/arista show route format
                 # - entry lean time
@@ -63,9 +63,7 @@ class CiscoRouteTable(RouteTable):
                 matched = False
                 # pylint: disable=duplicate-code
                 for match_info in self._generate_match_info_list():
-                    # print(
-                    #     f"# DEBUG-{index}: regexp={match_info['regexp']}, type={match_info['type']}", file=sys.stderr
-                    # )
+                    util.debug(f"# {index}: regexp={match_info['regexp']}, type={match_info['type']}", self.debug)
                     match = re.search(match_info["regexp"], line)
                     if match:
                         self._add_entry_by_type(match, match_info)
@@ -123,7 +121,7 @@ class CiscoRouteTable(RouteTable):
         prefix = mdict["prefix"]
         intf = mdict["intf"] if "intf" in mdict else None
 
-        # print(f"# DEBUG: entry (direct) : proto={proto} prefix={prefix}, intf={intf}", file=sys.stderr)
+        util.debug(f"entry (direct) : proto={proto} prefix={prefix}, intf={intf}", self.debug)
 
         rt_entry = {"protocol": proto, "preference": 0}
         if intf is not None:
@@ -139,10 +137,10 @@ class CiscoRouteTable(RouteTable):
         via_ip = mdict["ip"]
         via_intf = mdict["intf"] if "intf" in mdict else None
 
-        # print(
-        #     f"# DEBUG: entry : proto={proto}, [{preference}/{metric}] prefix={prefix}, ip={via_ip}, intf={via_intf}",
-        #     file=sys.stderr,
-        # )
+        util.debug(
+            f"# entry : proto={proto}, [{preference}/{metric}] prefix={prefix}, ip={via_ip}, intf={via_intf}",
+            self.debug,
+        )
 
         rt_entry = {"protocol": proto, "preference": preference, "metric": metric}
         if via_intf is not None:
@@ -156,7 +154,7 @@ class CiscoRouteTable(RouteTable):
         via_ip = mdict["ip"]
         via_intf = mdict["intf"] if "intf" in mdict else None
 
-        # print(f"# DEBUG: match entry (same dst): ip={via_ip}, intf={via_intf}", file=sys.stderr)
+        util.debug(f"match entry (same dst): ip={via_ip}, intf={via_intf}", self.debug)
 
         rt_entry: CiscoRouteTableEntry = self.entries[-1]
         if via_intf is not None:
@@ -168,7 +166,7 @@ class CiscoRouteTable(RouteTable):
         if short in self.LONG_PROTO_TABLE:
             return self.LONG_PROTO_TABLE[short]
 
-        # print(f"WARNING: unknown protocol: {short}", file=sys.stderr)
+        util.warn(f"WARNING: unknown protocol: {short}")
         return "_unknown_"
 
 
@@ -176,5 +174,5 @@ if __name__ == "__main__":
     BASE_DIR = "~/ool-mddo/playground/configs/mddo-ospf/original_asis/status/showroute/"
     file = os.path.join(BASE_DIR, "RegionB-RT1_show_route.txt")
     # file = os.path.join(base_dir, "RegionC-RT1_show_route.txt")
-    cisco_rt = CiscoRouteTable(os.path.expanduser(file))
+    cisco_rt = CiscoRouteTable(os.path.expanduser(file), debug=True)
     print(yaml.dump(cisco_rt.to_dict()))

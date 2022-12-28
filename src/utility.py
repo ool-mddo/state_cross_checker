@@ -3,9 +3,10 @@ import json
 from typing import Dict, NoReturn
 
 
-def debug(message: str) -> NoReturn:
+def debug(message: str, enable=False) -> NoReturn:
     """debug message"""
-    print(f"DEBUG: {message}", file=sys.stderr)
+    if enable:
+        print(f"DEBUG: {message}", file=sys.stderr)
 
 
 def error(message: str) -> NoReturn:

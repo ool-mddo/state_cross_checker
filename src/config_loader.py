@@ -9,6 +9,7 @@ class ConfigLoader:
     def __init__(
         self, config_file: str, src_env: str, dst_env: str, network: str, src_ss: str, dst_ss: str, debug=False
     ):
+        self.debug = debug
         self.config_file = os.path.expanduser(config_file)
         if not os.path.exists(self.config_file):
             util.error("config file not found")
@@ -18,7 +19,7 @@ class ConfigLoader:
         self.src_config = self._choose_config(src_env, network, src_ss)
         self.dst_config = self._choose_config(dst_env, network, dst_ss)
 
-        if debug:
+        if self.debug:
             util.debug(f"src_config: {self.src_config}")
             util.debug(f"dst_config: {self.dst_config}")
             util.debug(f"original_node_params: {self.original_node_params}")

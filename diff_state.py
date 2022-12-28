@@ -43,7 +43,7 @@ if __name__ == "__main__":
         if args.debug:
             print("# DEBUG: node_param: ", node_param, file=sys.stderr)
         if node_param is not None:
-            result_data.append(state_checker.check_state_table_for_node(args.table, node_param, args.debug))
+            result_data.append(state_checker.check_state_table_for_node(args.table, node_param))
         else:
             print(f"Error: node {args.node} is not found in config", file=sys.stderr)
             sys.exit(1)
@@ -52,7 +52,7 @@ if __name__ == "__main__":
         for node_param in state_checker.config.original_node_params:
             if args.debug:
                 print("# DEBUG: node_param: ", node_param, file=sys.stderr)
-            result_data.append(state_checker.check_state_table_for_node(args.table, node_param, args.debug))
+            result_data.append(state_checker.check_state_table_for_node(args.table, node_param))
 
     # output
     output_data = {"src_env": args.src_env, "dst_env": args.dst_env, "all_results": result_data}

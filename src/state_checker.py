@@ -17,6 +17,7 @@ class StateChecker:
         self, config_file: str, src_env: str, dst_env: str, network: str, src_ss: str, dst_ss: str, debug=False
     ):
         self.config = ConfigLoader(config_file, src_env, dst_env, network, src_ss, dst_ss, debug)
+        self.debug = debug
 
     @staticmethod
     def _cross_check(src_table: StateTable, dst_table: StateTable) -> Dict:
@@ -68,24 +69,29 @@ class StateChecker:
         # config type = original and not juniper node
         return CiscoOspfNeighborTable(file_path)
 
-    def check_state_table_for_node(self, target_table: str, node_param: Dict, debug=False) -> Dict:
+    def _check_route_table_for_node(self, node_param: Dict) -> Dict:
+        src_rt = self._route_table(self.config.src_config, node_param)
+        dst_rt = self._route_table(self.config.dst_config, node_param)
+        if self.debug:
+            return {"node_param": node_param, "src": src_rt.to_dict(), "dst": dst_rt.to_dict()}
+        return {"node_param": node_param, "result": self._cross_check(src_rt, dst_rt)}
+
+    def _check_ospf_neighbor_table_for_node(self, node_param: Dict) -> Dict:
+        # ignore non-ospf-speaker
+        if node_param["ospf"] is False:
+            return {"node_param": node_param, "result": {}, "note": "ignored (non-ospf-speaker)"}
+
+        src_ospf_neigh = self._ospf_neighbor_table(self.config.src_config, node_param)
+        dst_ospf_neigh = self._ospf_neighbor_table(self.config.dst_config, node_param)
+        if self.debug:
+            return {"node_param": node_param, "src": src_ospf_neigh.to_dict(), "dst": dst_ospf_neigh.to_dict()}
+        return {"node_param": node_param, "result": self._cross_check(src_ospf_neigh, dst_ospf_neigh)}
+
+    def check_state_table_for_node(self, target_table: str, node_param: Dict) -> Dict:
         """Exec cross-check for a node in src/dst environments"""
+        if target_table not in ["route", "ospf_neighbor"]:
+            return {"type": "error", "message": f"Unknown target table {target_table}"}
+
         if target_table == "route":
-            src_rt = self._route_table(self.config.src_config, node_param)
-            dst_rt = self._route_table(self.config.dst_config, node_param)
-            if debug:
-                return {"node_param": node_param, "src": src_rt.to_dict(), "dst": dst_rt.to_dict()}
-            return {"node_param": node_param, "result": self._cross_check(src_rt, dst_rt)}
-
-        if target_table == "ospf_neighbor":
-            # ignore non-ospf-speaker
-            if node_param["ospf"] is False:
-                return {"node_param": node_param, "result": {}, "note": "ignored (non-ospf-speaker)"}
-
-            src_ospf_neigh = self._ospf_neighbor_table(self.config.src_config, node_param)
-            dst_ospf_neigh = self._ospf_neighbor_table(self.config.dst_config, node_param)
-            if debug:
-                return {"node_param": node_param, "src": src_ospf_neigh.to_dict(), "dst": dst_ospf_neigh.to_dict()}
-            return {"node_param": node_param, "result": self._cross_check(src_ospf_neigh, dst_ospf_neigh)}
-
-        return {"type": "error", "message": f"Unknown target table {target_table}"}
+            return self._check_route_table_for_node(node_param)
+        return self._check_ospf_neighbor_table_for_node(node_param)

@@ -1,10 +1,9 @@
 import os
 import re
-
-# import sys
 from typing import Dict, NoReturn
 import yaml
 from base_ospfneigh_table import OspfNeighborTable, OspfNeighborTableEntry
+import utility as util
 
 
 class CiscoOspfNeighborTableEntry(OspfNeighborTableEntry):
@@ -19,9 +18,10 @@ class CiscoOspfNeighborTableEntry(OspfNeighborTableEntry):
 
 
 class CiscoOspfNeighborTable(OspfNeighborTable):
-    def __init__(self, file_path: str):
+    def __init__(self, file_path: str, debug=False):
         super().__init__()
 
+        self.debug = debug
         self.table_name = "_cisco_ospf_neighbor_"
         # pylint: disable=duplicate-code
         self._load_table_data(file_path)
@@ -32,13 +32,12 @@ class CiscoOspfNeighborTable(OspfNeighborTable):
             index = 0
             for line in file_io.read().splitlines():
                 index += 1
-                # print(f"# DEBUG-{index}: LINE={line}", file=sys.stderr)
+                util.debug(f"{index}: LINE={line}", self.debug)
 
                 # pylint: disable=duplicate-code
                 for match_info in self._generate_match_info_list():
-                    # print(
-                    #     f"# DEBUG-{index}: regexp={match_info['regexp']}, type={match_info['type']}", file=sys.stderr
-                    # )
+                    util.debug(f"{index}: regexp={match_info['regexp']}, type={match_info['type']}", self.debug)
+
                     match = re.search(match_info["regexp"], line)
                     if match:
                         self._add_entry_by_type(match, match_info)
@@ -68,13 +67,13 @@ class CiscoOspfNeighborTable(OspfNeighborTable):
     def _add_entry_by_type(self, match: re.Match, _match_info: Dict) -> NoReturn:
         mdict = match.groupdict()
 
-        # neighbor_id = mdict["id"]
-        # priority = mdict["priority"]
-        # state = mdict["state"]
-        # addr = mdict["addr"]
-        # intf = mdict["intf"]
+        neighbor_id = mdict["id"]
+        priority = mdict["priority"]
+        state = mdict["state"]
+        addr = mdict["addr"]
+        intf = mdict["intf"]
 
-        # print(f"# DEBUG: {neighbor_id}, {priority}, {state}, {addr}, {intf}", file=sys.stderr)
+        util.debug(f"{neighbor_id}, {priority}, {state}, {addr}, {intf}", self.debug)
 
         self.entries.append(CiscoOspfNeighborTableEntry(mdict))
 
@@ -83,5 +82,5 @@ if __name__ == "__main__":
     BASE_DIR = "~/ool-mddo/playground/configs/mddo-ospf/original_asis/status/showospfneigh"
     # file = os.path.join(BASE_DIR, "RegionB-RT1_show_ospf_neigh.txt")
     file = os.path.join(BASE_DIR, "RegionC-RT1_show_ospf_neigh.txt")
-    cisco_rt = CiscoOspfNeighborTable(os.path.expanduser(file))
+    cisco_rt = CiscoOspfNeighborTable(os.path.expanduser(file), debug=True)
     print(yaml.dump(cisco_rt.to_dict()))
