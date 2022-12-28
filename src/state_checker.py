@@ -37,9 +37,9 @@ class StateChecker:
 
         return result
 
-    def find_node_param_by_name(self, node_name):
+    def find_node_param_by_name(self, node_name) -> Dict:
         """find a node param by name (ignore case)"""
-        next(filter(lambda n: n["name"].lower() == node_name.lower(), self.config.original_node_params), None)
+        return next(filter(lambda n: n["name"].lower() == node_name.lower(), self.config.original_node_params), None)
 
     @staticmethod
     def _join_as_path(*path) -> str:
