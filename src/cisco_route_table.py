@@ -1,7 +1,8 @@
 import os
 import re
 from typing import Dict, List, NoReturn
-import sys
+
+# import sys
 import yaml
 from base_route_table import RouteEntryNextHop, RouteEntry, RouteTableEntry, RouteTable
 
@@ -53,7 +54,7 @@ class CiscoRouteTable(RouteTable):
             index = 0
             for line in file_io.read().splitlines():
                 index += 1
-                print(f"# DEBUG-{index}: LINE={line}", file=sys.stderr)
+                # print(f"# DEBUG-{index}: LINE={line}", file=sys.stderr)
 
                 # there are several differences between cisco/arista show route format
                 # - entry lean time
@@ -62,9 +63,9 @@ class CiscoRouteTable(RouteTable):
                 matched = False
                 # pylint: disable=duplicate-code
                 for match_info in self._generate_match_info_list():
-                    print(
-                        f"# DEBUG-{index}: regexp={match_info['regexp']}, type={match_info['type']}", file=sys.stderr
-                    )
+                    # print(
+                    #     f"# DEBUG-{index}: regexp={match_info['regexp']}, type={match_info['type']}", file=sys.stderr
+                    # )
                     match = re.search(match_info["regexp"], line)
                     if match:
                         self._add_entry_by_type(match, match_info)
@@ -122,7 +123,7 @@ class CiscoRouteTable(RouteTable):
         prefix = mdict["prefix"]
         intf = mdict["intf"] if "intf" in mdict else None
 
-        print(f"# DEBUG: entry (direct) : proto={proto} prefix={prefix}, intf={intf}", file=sys.stderr)
+        # print(f"# DEBUG: entry (direct) : proto={proto} prefix={prefix}, intf={intf}", file=sys.stderr)
 
         rt_entry = {"protocol": proto, "preference": 0}
         if intf is not None:
@@ -138,10 +139,10 @@ class CiscoRouteTable(RouteTable):
         via_ip = mdict["ip"]
         via_intf = mdict["intf"] if "intf" in mdict else None
 
-        print(
-            f"# DEBUG: entry : proto={proto}, [{preference}/{metric}] prefix={prefix}, ip={via_ip}, intf={via_intf}",
-            file=sys.stderr,
-        )
+        # print(
+        #     f"# DEBUG: entry : proto={proto}, [{preference}/{metric}] prefix={prefix}, ip={via_ip}, intf={via_intf}",
+        #     file=sys.stderr,
+        # )
 
         rt_entry = {"protocol": proto, "preference": preference, "metric": metric}
         if via_intf is not None:
@@ -155,7 +156,7 @@ class CiscoRouteTable(RouteTable):
         via_ip = mdict["ip"]
         via_intf = mdict["intf"] if "intf" in mdict else None
 
-        print(f"# DEBUG: match entry (same dst): ip={via_ip}, intf={via_intf}", file=sys.stderr)
+        # print(f"# DEBUG: match entry (same dst): ip={via_ip}, intf={via_intf}", file=sys.stderr)
 
         rt_entry: CiscoRouteTableEntry = self.entries[-1]
         if via_intf is not None:
@@ -167,7 +168,7 @@ class CiscoRouteTable(RouteTable):
         if short in self.LONG_PROTO_TABLE:
             return self.LONG_PROTO_TABLE[short]
 
-        print(f"WARNING: unknown protocol: {short}", file=sys.stderr)
+        # print(f"WARNING: unknown protocol: {short}", file=sys.stderr)
         return "_unknown_"
 
 

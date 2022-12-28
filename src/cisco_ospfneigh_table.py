@@ -1,6 +1,7 @@
 import os
 import re
-import sys
+
+# import sys
 from typing import Dict, NoReturn
 import yaml
 from base_ospfneigh_table import OspfNeighborTable, OspfNeighborTableEntry
@@ -31,13 +32,13 @@ class CiscoOspfNeighborTable(OspfNeighborTable):
             index = 0
             for line in file_io.read().splitlines():
                 index += 1
-                print(f"# DEBUG-{index}: LINE={line}", file=sys.stderr)
+                # print(f"# DEBUG-{index}: LINE={line}", file=sys.stderr)
 
                 # pylint: disable=duplicate-code
                 for match_info in self._generate_match_info_list():
-                    print(
-                        f"# DEBUG-{index}: regexp={match_info['regexp']}, type={match_info['type']}", file=sys.stderr
-                    )
+                    # print(
+                    #     f"# DEBUG-{index}: regexp={match_info['regexp']}, type={match_info['type']}", file=sys.stderr
+                    # )
                     match = re.search(match_info["regexp"], line)
                     if match:
                         self._add_entry_by_type(match, match_info)
@@ -67,13 +68,13 @@ class CiscoOspfNeighborTable(OspfNeighborTable):
     def _add_entry_by_type(self, match: re.Match, _match_info: Dict) -> NoReturn:
         mdict = match.groupdict()
 
-        neighbor_id = mdict["id"]
-        priority = mdict["priority"]
-        state = mdict["state"]
-        addr = mdict["addr"]
-        intf = mdict["intf"]
+        # neighbor_id = mdict["id"]
+        # priority = mdict["priority"]
+        # state = mdict["state"]
+        # addr = mdict["addr"]
+        # intf = mdict["intf"]
 
-        print(f"# DEBUG: {neighbor_id}, {priority}, {state}, {addr}, {intf}", file=sys.stderr)
+        # print(f"# DEBUG: {neighbor_id}, {priority}, {state}, {addr}, {intf}", file=sys.stderr)
 
         self.entries.append(CiscoOspfNeighborTableEntry(mdict))
 
