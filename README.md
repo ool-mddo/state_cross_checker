@@ -33,7 +33,20 @@ emulated-namespace snapshots (comparable by row/col):
 | as-is | emulated_asis | emulated_asis             |
 | to-be | emulated_tobe | emulated_tobe             |
 
-Directory structure:
+Directory structure (AS-IS):
+
+```text
+configs/
+  + <network>/
+    + <snapshot>/
+      + configs/    ... config files of network devices (batfish input)
+      + batfish/    ... config files for batfish (batfish input)
+      + states/     ... state files (for original/emulated)
+        + <state>
+          + <node-name>_<state>.txt
+```
+
+Directory structure (TO-BE):
 
 ```text
 configs/
@@ -88,7 +101,7 @@ python bf_state.py -n mddo-ospf -s emulated_asis
 
 Specify check targets using options:
 
-* `-d`/`--node`: Target node (device)
+* `-d`/`--node`: (optional) Target node (device)
 * `-n`/`--network`: Target network
 * `-t`/`--table`: State table to check `[route,ospf_neighbor]`
 * Source snapshot
@@ -101,11 +114,12 @@ Specify check targets using options:
 other options:
 
 * `-c`/`--config` : (optional) configuration file
+* `-o`/`--output` : (optional) output data format
 * `--debug`: (optional) debug print
 
 ```shell
-python diff_state.py -t route -d rt1 -n mddo-ospf \
-  -se batfish -ss emulated_asis -de emulated -ds emulated_asis
+python diff_state.py --config ool-mddo.config.yaml --table route -n mddo-ospf \
+  -se original -ss original_asis -de emulated -ds emulated_asis
 ```
 
 ## Development
